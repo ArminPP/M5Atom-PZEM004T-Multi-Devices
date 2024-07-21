@@ -1,0 +1,110 @@
+
+#include <M5Atom.h>
+#include <PZEM004Tv30.h> // https://github.com/mandulaj/PZEM-004T-v30
+
+#include "ProfileTimer.h"
+
+HardwareSerial PZEM_Serial(1); // Serial for 3 Modbus PZEM004T Clients
+
+// This device communicates only if 240VAC is connected!!
+PZEM004Tv30 pzem(PZEM_Serial, 21, 25);
+
+long count = 0;
+
+// PZEM-004T data
+struct PZEM_004T_Sensor_t
+{
+    float Voltage;
+    float Current;
+    float Power;
+    float Energy;
+    float Frequency;
+    float PowerFactor;
+};
+
+// **********************************************************************
+// read all data from PZEM-004T
+// INFO  reading of PZEM-004T takes ~600ms in BLOCKING mode        !!!!!!
+// **********************************************************************
+void readPZEM004Data(PZEM_004T_Sensor_t &PZEM004data)
+{
+    {
+        // tests if value is "Nan" (then set to 0.0) or a valid float ...
+        // generates "Nan" for testing ==>  float voltage = float(sqrt(-2.0));
+        PZEM004data.Voltage     = isnan(pzem.voltage()) ? 0.0 : pzem.voltage();
+        PZEM004data.Current     = isnan(pzem.current()) ? 0.0 : pzem.current();
+        PZEM004data.Power       = isnan(pzem.power()) ? 0.0 : pzem.power();
+        PZEM004data.Energy      = isnan(pzem.energy()) ? 0.0 : pzem.energy();
+        PZEM004data.Frequency   = isnan(pzem.frequency()) ? 0.0 : pzem.frequency();
+        PZEM004data.PowerFactor = isnan(pzem.pf()) ? 0.0 : pzem.pf();
+
+        ProfileTimer tt("read PZEM004_1");
+    }
+    Serial.printf(
+        "%06ld | PZEM_004T (0x%02x)   Voltage: %.2f V | Current %.2f A  | Power %.2f W  | Energy %.2f kWh  | Frequency %.2f Hz  | PowerFactor %.2f\r\n",
+        count++,
+        pzem.readAddress(),
+        PZEM004data.Voltage,
+        PZEM004data.Current,
+        PZEM004data.Power,
+        PZEM004data.Energy,
+        PZEM004data.Frequency,
+        PZEM004data.PowerFactor);
+}
+
+void ElapsedRuntime(uint16_t &dd, byte &hh, byte &mm, byte &ss, uint16_t &ms)
+// returns the elapsed time since startup of the ESP
+{
+    unsigned long now = millis();
+    int nowSeconds    = now / 1000;
+
+    dd = nowSeconds / 60 / 60 / 24;
+    hh = (nowSeconds / 60 / 60) % 24;
+    mm = (nowSeconds / 60) % 60;
+    ss = nowSeconds % 60;
+    ms = now % 1000;
+}
+
+void setup()
+{
+    M5.begin(true, false, true);
+    M5.dis.fillpix(0x00004f);
+    Serial.begin(115200);
+    // M5.dis.drawpix(0, 0, 0x00ff00); // green
+    delay(2000);
+    Serial.println("M5Atom PZEM004T Test"); // Console print
+    Serial.println();
+    Serial.println();
+    Serial.printf(" Current PZEM_004T address: 0x%02x\r\n", pzem.readAddress());
+    Serial.println();
+    /*    delay(2000);
+
+        uint8_t addr = 0x03;
+        if (!pzem.setAddress(addr))
+        {
+            // Setting custom address failed. Probably no PZEM connected
+            Serial.println("Error setting address.");
+        }
+        else
+        {
+            // Print out the new custom address
+            Serial.printf(" New PZEM_004T address: 0x%02x\r\n", pzem.readAddress());
+        }
+    */
+}
+
+void loop()
+{
+    PZEM_004T_Sensor_t PZEM004Data;
+
+    static unsigned long ReadLoopPM = 0;
+    unsigned long ReadLoopCM        = millis();
+    if (ReadLoopCM - ReadLoopPM >= (1000))
+    {
+        // Read the data from the sensor
+        readPZEM004Data(PZEM004Data);
+
+        // -------- ReadLoop end ----------------------------------------------------------------
+        ReadLoopPM = ReadLoopCM;
+    }
+}
