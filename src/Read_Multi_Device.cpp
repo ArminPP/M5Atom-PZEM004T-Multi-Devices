@@ -19,8 +19,8 @@ const uint16_t EmonCmsWiFiTimeout = 5000; // ms
 // --- Network ---
 const char *ESP_HOSTNAME = "PowerMeter3";
 
-const char *WIFI_SSID     = " ";
-const char *WIFI_PASSWORD = " ";
+const char *WIFI_SSID     = "FLAUSCHI-NET";
+const char *WIFI_PASSWORD = "AuPuWudLxs1LGc6IOmNMJyDh";
 
 bool WIFI_DHCP = true;
 
@@ -29,8 +29,8 @@ uint16_t EMONCMS_PORT                = 80;
 const char *EMONCMS_NODE_SOLAR       = "SolarDuino";
 const char *EMONCMS_NODE_CONSUMPTION = "ConsumptionDuino";
 const char *EMONCMS_NODE_GRID        = "PowerDuino";
-const char *EMONCMS_API_KEY          = " "; // Your RW apikey
-uint16_t EMONCMS_LOOP_TIME           = 10;                                 // SECONDS!
+const char *EMONCMS_API_KEY          = "1ce596688fc9a1e40d25d855a1336dad"; // Your RW apikey
+uint16_t EMONCMS_LOOP_TIME           = 5;                                 // SECONDS!
 uint32_t EMONCMS_TIMEOUT             = 1500;
 
 // PZEM-004T data
@@ -339,7 +339,9 @@ void setup()
 
 void loop()
 {
-    PZEM_004T_Sensor_t PZEM004Data;
+    PZEM_004T_Sensor_t SolarData;
+    PZEM_004T_Sensor_t ConsumptionData;
+    PZEM_004T_Sensor_t GridData;
 
     checkWIFIandReconnect();
 
@@ -348,17 +350,17 @@ void loop()
     if (ReadLoopCM - ReadLoopPM >= (ONE_SECOND * EMONCMS_LOOP_TIME)) //
     {
         // Read the data from the sensor
-        readPZEM004Data(Solar, PZEM004Data);
-        sendToEMON(SOLAR, PZEM004Data);
-        PrintToConsole(SOLAR, PZEM004Data);
+        readPZEM004Data(Solar, SolarData);
+        readPZEM004Data(Consumption, ConsumptionData);
+        readPZEM004Data(Grid, GridData);
 
-        readPZEM004Data(Consumption, PZEM004Data);
-        sendToEMON(CONSUMPTION, PZEM004Data);
-        PrintToConsole(CONSUMPTION, PZEM004Data);
+        PrintToConsole(SOLAR, SolarData);
+        PrintToConsole(CONSUMPTION, ConsumptionData);
+        PrintToConsole(GRID, GridData);
 
-        readPZEM004Data(Grid, PZEM004Data);
-        sendToEMON(GRID, PZEM004Data);
-        PrintToConsole(GRID, PZEM004Data);
+        sendToEMON(SOLAR, SolarData);
+        sendToEMON(CONSUMPTION, ConsumptionData);
+        sendToEMON(GRID, GridData);
 
         // -------- ReadLoop end ----------------------------------------------------------------
         ReadLoopPM = ReadLoopCM;
