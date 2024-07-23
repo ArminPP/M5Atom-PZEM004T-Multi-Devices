@@ -19,8 +19,8 @@ const uint16_t EmonCmsWiFiTimeout = 5000; // ms
 // --- Network ---
 const char *ESP_HOSTNAME = "PowerMeter3";
 
-const char *WIFI_SSID     = "FLAUSCHI-NET";
-const char *WIFI_PASSWORD = "AuPuWudLxs1LGc6IOmNMJyDh";
+const char *WIFI_SSID     = " ";
+const char *WIFI_PASSWORD = " ";
 
 bool WIFI_DHCP = true;
 
@@ -29,7 +29,7 @@ uint16_t EMONCMS_PORT                = 80;
 const char *EMONCMS_NODE_SOLAR       = "SolarDuino";
 const char *EMONCMS_NODE_CONSUMPTION = "ConsumptionDuino";
 const char *EMONCMS_NODE_GRID        = "PowerDuino";
-const char *EMONCMS_API_KEY          = "1ce596688fc9a1e40d25d855a1336dad"; // Your RW apikey
+const char *EMONCMS_API_KEY          = " "; // Your RW apikey
 uint16_t EMONCMS_LOOP_TIME           = 5;                                 // SECONDS!
 uint32_t EMONCMS_TIMEOUT             = 1500;
 
